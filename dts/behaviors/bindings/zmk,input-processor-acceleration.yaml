@@ -1,0 +1,55 @@
+# SPDX-License-Identifier: MIT
+description: ZMK Velocity-Based Pointer Acceleration Input Processor
+
+compatible: "zmk,input-processor-acceleration"
+
+include:
+  - input-controller.yaml       # (Standard input device base binding, if applicable)
+
+properties:
+  #input-processor-cells:
+    type: int
+    required: true
+    const: 0
+    description: Number of parameters when referencing this processor (no parameters used)
+
+    type:
+    type: int
+    required: true
+    description: Input event type to accelerate (e.g. INPUT_EV_REL for relative events)
+
+    codes:
+    type: array
+    items:
+      type: int
+    required: true
+    description: List of input event code values (within the given type) to apply acceleration to (e.g. INPUT_REL_X and INPUT_REL_Y)
+
+    track-remainders:
+      type: boolean
+      description: If true, preserve fractional movement remainders between events for high precision at slow speeds. If false, fractional parts are discarded.
+
+    min-factor:
+      type: int
+      default: 1000    # 1.000x (no deceleration by default)
+      description: Minimum pointer speed factor (scaled by 1000). Values <1000 slow down movements at very low speeds (e.g. 500 for 0.5x).
+
+    max-factor:
+      type: int
+      default: 3500    # 3.500x
+      description: Maximum pointer speed factor (scaled by 1000). Movement will be accelerated up to this factor at high speeds.
+
+    speed-threshold:
+      type: int
+      default: 1000    # counts per second
+      description: Pointer speed (counts per second) at which acceleration factor reaches 1.0 (no scaling). Below this speed, movements may be decelerated; above it, movements accelerate.
+
+    speed-max:
+      type: int
+      default: 6000    # counts per second
+      description: Pointer speed (counts per second) at which the acceleration factor reaches max-factor. Movements faster than this use the maximum acceleration.
+
+    acceleration-exponent:
+      type: int
+      default: 1       # 1 = linear
+      description: Exponent for the acceleration curve. 1 = linear acceleration. 2 or higher applies a more exponential (polynomial) curve for acceleration above the threshold. 
