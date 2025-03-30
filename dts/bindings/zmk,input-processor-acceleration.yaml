@@ -3,16 +3,9 @@ description: ZMK Velocity-Based Pointer Acceleration Input Processor
 
 compatible: "zmk,input-processor-acceleration"
 
-include:
-  - input-controller.yaml       # (Standard input device base binding, if applicable)
+include: ip_zero_param.yaml      # (Standard input device base binding, if applicable)
 
 properties:
-  #input-processor-cells:
-    type: int
-    required: true
-    const: 0
-    description: Number of parameters when referencing this processor (no parameters used)
-
     type:
     type: int
     required: true
@@ -24,10 +17,6 @@ properties:
       type: int
     required: true
     description: List of input event code values (within the given type) to apply acceleration to (e.g. INPUT_REL_X and INPUT_REL_Y)
-
-    track-remainders:
-      type: boolean
-      description: If true, preserve fractional movement remainders between events for high precision at slow speeds. If false, fractional parts are discarded.
 
     min-factor:
       type: int
