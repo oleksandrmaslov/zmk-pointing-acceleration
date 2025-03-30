@@ -42,7 +42,7 @@ static int accel_handle_event(const struct device *dev, struct input_event *even
     struct accel_data *data = dev->data;
 
     /* Only handle the configured event type (e.g. relative events) */
-    if (event->type != cfg->type) {
+    if (event->type != cfg->input_type) {
         return 0;  /* Not our event type, leave it unchanged */
     }
     /* Only handle specified codes (e.g. REL_X, REL_Y); others pass through */
