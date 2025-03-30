@@ -8,7 +8,7 @@
 
 /* Configuration from devicetree (constant for each instance) */
 struct accel_config {
-    uint8_t type;                  /* Event type to process (e.g. INPUT_EV_REL) */
+    uint8_t input_type;                  /* Event type to process (e.g. INPUT_EV_REL) */
     const uint16_t *codes;         /* Array of event code values to accelerate (e.g. REL_X, REL_Y) */
     uint32_t codes_count;          /* Number of codes in the array */
     bool track_remainders;         /* Whether to accumulate fractional movement remainders */
