@@ -1,7 +1,7 @@
 # Delete all unused properties.
 
 # Give your module a name
-name: zmk-input-accelaration
+name: zmk-input-processor-acceleration
 build:
   # List your dependencies
   depends:
