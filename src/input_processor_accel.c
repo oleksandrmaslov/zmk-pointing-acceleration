@@ -1,6 +1,6 @@
 #include <zephyr/kernel.h>
 #include <zephyr/device.h>
-#include <zephyr/drivers/input_processor.h>
+#include <drivers/input_processor.h>
 #include <zephyr/dt-bindings/input/input-event-codes.h>
 
 /* Maximum number of event codes this processor can handle (e.g. REL_X, REL_Y). */
