@@ -12,9 +12,7 @@ properties:
     description: Input event type to accelerate (e.g. INPUT_EV_REL for relative events)
     
   codes:
-    type: array
-    items:
-      type: int
+    type: int
     required: true
     description: List of input event code values (within the given type) to apply acceleration to (e.g. INPUT_REL_X and INPUT_REL_Y)
 
