@@ -6,12 +6,7 @@ compatible: "zmk,input-processor-acceleration"
 include: ip_zero_param.yaml      # (Standard input device base binding, if applicable)
 
 properties:
-    type: int
-    required: true
-    const: 0
-    description: Number of parameters when referencing this processor (no parameters used)
-
-  type:
+  input-type:
     type: int
     required: true
     description: Input event type to accelerate (e.g. INPUT_EV_REL for relative events)
