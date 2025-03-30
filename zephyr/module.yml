@@ -3,9 +3,6 @@
 # Give your module a name
 name: zmk-input-processor-acceleration
 build:
-  # List your dependencies
-  depends:
-    - zmk-example-dependency
   # Folder containing a "CMakeLists.txt" (. = root)
   cmake: .
   # Kconfig filepath
