@@ -11,12 +11,6 @@ properties:
     required: true
     description: Input event type to accelerate (e.g. INPUT_EV_REL for relative events)
     
-  codes:
-    type: int
-    array: true
-    required: true
-    description: List of input event code values (within the given type) to apply acceleration to (e.g. INPUT_REL_X and INPUT_REL_Y)
-
   min-factor:
     type: int
     default: 1000    # 1.000x (no deceleration by default)
