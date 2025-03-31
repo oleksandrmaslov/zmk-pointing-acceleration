@@ -199,7 +199,7 @@ static const struct accel_config accel_config_##inst = {                     \
     .acceleration_exponent = DT_INST_PROP_OR(inst, acceleration_exponent, 1)   \
 };                                                                             \
 static struct accel_data accel_data_##inst;                                    \
-DEVICE_DT_INST_DEFINE(inst, NULL, NULL,                                        \
+DEVICE_DT_INST_DEFINE(inst, NULL, (struct pm_device *)DEVICE_DT_GET(DT_NODELABEL(glidepoint)),    \
                       &accel_data_##inst, &accel_config_##inst,                \
                       APPLICATION, CONFIG_ZMK_INPUT_PROCESSOR_INIT_PRIORITY,   \
                       &(const struct zmk_input_processor_driver_api){          \
