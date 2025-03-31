@@ -40,7 +40,7 @@ static int accel_handle_event(const struct device *dev, struct input_event *even
     struct accel_data *data = dev->data;
 
     /* Обрабатываем только события заданного типа */
-    if (event->type != cfg->input_type {
+    if (event->type != cfg->input_type) {
         return 0;
     }
 
