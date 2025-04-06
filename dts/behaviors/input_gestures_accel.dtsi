@@ -13,4 +13,3 @@
             acceleration-exponent = <2>; // quadratic curve
         };
     };
-};
