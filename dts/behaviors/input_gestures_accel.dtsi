@@ -1,7 +1,7 @@
 / {
         pointer_accel: pointer_accel {
-            status = "okay";
             compatible = "zmk,input-processor-acceleration";
+            status = "okay";
             #input-processor-cells = <0>;
         };
     };
