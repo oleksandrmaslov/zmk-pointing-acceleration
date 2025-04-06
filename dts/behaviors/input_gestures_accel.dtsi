@@ -5,11 +5,5 @@
             #input-processor-cells = <0>;
             type = <INPUT_EV_REL>;
             codes = <INPUT_REL_X INPUT_REL_Y>;
-            track-remainders;
-            min-factor = <800>;        // 0.8x at very slow speeds
-            max-factor = <3000>;       // 3.0x at fast speeds
-            speed-threshold = <1200>;  // 1200 counts/sec for 1x
-            speed-max = <6000>;        // 6000 counts/sec for max accel
-            acceleration-exponent = <2>; // quadratic curve
         };
     };
