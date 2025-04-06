@@ -3,7 +3,7 @@
             status = "okay";
             compatible = "zmk,input-processor-acceleration";
             #input-processor-cells = <0>;
-            type = <INPUT_EV_REL>;
+            input_type = <INPUT_EV_REL>;
             codes = <INPUT_REL_X INPUT_REL_Y>;
         };
     };
