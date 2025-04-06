@@ -1,6 +1,6 @@
 / {
-    input_processors {
         pointer_accel: pointer_accel {
+            status = "okay";
             compatible = "zmk,input-processor-acceleration";
             #input-processor-cells = <0>;
             type = <INPUT_EV_REL>;
