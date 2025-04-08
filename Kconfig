@@ -7,6 +7,8 @@ config ZMK_INPUT_PROCESSOR_ACCELERATION
     bool "Enable input processor acceleration"
     default $(dt_compat_enabled,$(DT_COMPAT_ZMK_INPUT_PROCESSOR_ACCELERATION))
     depends on ZMK_POINTING
+    depends on INPUT
+    default y
     depends on (!ZMK_SPLIT || ZMK_SPLIT_ROLE_CENTRAL)
     help
         Enables velocity-based acceleration for relative pointer input events.
