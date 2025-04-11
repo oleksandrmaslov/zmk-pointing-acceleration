@@ -37,27 +37,27 @@ struct accel_data {
 };
 
 /* Populate config and data for each instance from devicetree */
-#define ACCEL_INST_INIT(inst)                                                    \
-static const uint16_t accel_codes_##inst[] = { INPUT_REL_X, INPUT_REL_Y };       \
-static const struct accel_config accel_config_##inst = {                        \
-    .input_type = DT_INST_PROP_OR(inst, input_type, INPUT_EV_REL),              \
-    .codes = accel_codes_##inst,                                                 \
-    .codes_count = 2,                                                            \
-    .track_remainders = DT_INST_NODE_HAS_PROP(inst, track_remainders),             \
-    .min_factor = DT_INST_PROP_OR(inst, min_factor, 1000),                       \
-    .max_factor = DT_INST_PROP_OR(inst, max_factor, 3500),                       \
-    .speed_threshold = DT_INST_PROP_OR(inst, speed_threshold, 1000),             \
-    .speed_max = DT_INST_PROP_OR(inst, speed_max, 6000),                         \
-    .acceleration_exponent = DT_INST_PROP_OR(inst, acceleration_exponent, 1)      \
-};                                                                               \
-static struct accel_data accel_data_##inst = {0};                               \
-DEVICE_DT_INST_DEFINE(inst,                                                     \
-                      NULL,                                                     \
-                      NULL,                                                     \
+#define ACCEL_INST_INIT(inst)                                                  \
+static const uint16_t accel_codes_##inst[] = { INPUT_REL_X, INPUT_REL_Y };     \
+static const struct accel_config accel_config_##inst = {                       \
+    .input_type = DT_INST_PROP_OR(inst, input_type, INPUT_EV_REL),             \
+    .codes = accel_codes_##inst,                                               \
+    .codes_count = 2,                                                          \
+    .track_remainders = DT_INST_NODE_HAS_PROP(inst, track_remainders),         \
+    .min_factor = DT_INST_PROP_OR(inst, min_factor, 1000),                     \
+    .max_factor = DT_INST_PROP_OR(inst, max_factor, 3500),                     \
+    .speed_threshold = DT_INST_PROP_OR(inst, speed_threshold, 1000),           \
+    .speed_max = DT_INST_PROP_OR(inst, speed_max, 6000),                       \
+    .acceleration_exponent = DT_INST_PROP_OR(inst, acceleration_exponent, 1)   \
+};                                                                             \
+static struct accel_data accel_data_##inst = {0};                              \
+DEVICE_DT_INST_DEFINE(inst,                                                    \
+                      NULL,                                                    \
+                      NULL,                                                    \
                       &accel_data_##inst,                                      \
                       &accel_config_##inst,                                    \
                       POST_KERNEL,                                             \
-                      CONFIG_ZMK_INPUT_PROCESSOR_INIT_PRIORITY,                \
+                      CONFIG_INPUT_PROCESSOR_ACCELERATION_INIT_PRIORITY,       \
                       &(const struct zmk_input_processor_driver_api){          \
                           .handle_event = accel_handle_event                   \
                       });
