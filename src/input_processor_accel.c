@@ -2,7 +2,7 @@
 #include <zephyr/device.h>
 #include <drivers/input_processor.h>
 #include <zephyr/dt-bindings/input/input-event-codes.h>
-#include <stdlib.h> 
+#include <stdlib.h>  // For abs() function
 
 #define DT_DRV_COMPAT zmk_input_processor_acceleration
 
@@ -65,6 +65,7 @@ static int accel_handle_event(const struct device *dev, struct input_event *even
                               uint32_t param1, uint32_t param2,
                               struct zmk_input_processor_state *state) {
     ARG_UNUSED(param2);
+    ARG_UNUSED(state);  
     const struct accel_config *cfg = dev->config;
     struct accel_data *data = dev->data;
 
