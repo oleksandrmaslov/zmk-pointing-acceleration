@@ -16,4 +16,3 @@ config ZMK_INPUT_PROCESSOR_ACCELERATION
 config INPUT_PROCESSOR_ACCELERATION_INIT_PRIORITY
     int "Input processor acceleration initialization priority"
     default INPUT_INIT_PRIORITY
-    depends on ZMK_INPUT_PROCESSOR_ACCELERATION
