@@ -93,7 +93,58 @@ static int accel_handle_event(const struct device *dev, struct input_event *even
         return 0;
     }
 
-    /* ...remaining implementation... */
+    /* Calculate time delta */
+    int64_t current_time = k_uptime_get();
+    int64_t time_delta = data->last_time ? (current_time - data->last_time) : 0;
+    data->last_time = current_time;
+
+    /* Skip acceleration if this is the first event or too much time has passed */
+    if (time_delta == 0 || time_delta > 100) {
+        return 0;
+    }
+
+    /* Calculate speed in counts per second */
+    int32_t value = event->value;
+    int32_t speed = (abs(value) * 1000) / time_delta;
+
+    /* Calculate acceleration factor */
+    float factor = 1.0f;
+    if (speed >= cfg->speed_threshold) {
+        float speed_factor = (float)(speed - cfg->speed_threshold) / 
+                           (float)(cfg->speed_max - cfg->speed_threshold);
+        if (speed_factor > 1.0f) speed_factor = 1.0f;
+        
+        /* Apply acceleration exponent */
+        for (int i = 1; i < cfg->acceleration_exponent; i++) {
+            speed_factor *= speed_factor;
+        }
+        
+        float range = (cfg->max_factor - cfg->min_factor) / 1000.0f;
+        factor = (cfg->min_factor / 1000.0f) + (range * speed_factor);
+    } else {
+        factor = cfg->min_factor / 1000.0f;
+    }
+
+    /* Apply acceleration */
+    float accelerated_value = value * factor;
+    
+    /* Handle remainders if enabled */
+    if (cfg->track_remainders) {
+        float total = accelerated_value + (data->remainders[code_index] / 1000.0f);
+        int32_t integer_part = (int32_t)total;
+        data->remainders[code_index] = (int16_t)((total - integer_part) * 1000.0f);
+        event->value = integer_part;
+    } else {
+        event->value = (int32_t)accelerated_value;
+    }
+
+    /* Store last movement for direction changes */
+    if (event->code == INPUT_REL_X) {
+        data->last_phys_dx = value;
+    } else if (event->code == INPUT_REL_Y) {
+        data->last_phys_dy = value;
+    }
+    data->last_code = event->code;
 
     return 0;
 }
