@@ -150,8 +150,8 @@ The acceleration processor provides several settings to customize how your point
 Here's how different configurations affect pointer movement:
 
 ```
-Slow Speed │   Medium Speed   │   High Speed
-───────────┼─────────────────┼────────────
+Slow Speed │  Medium Speed  │  High Speed
+───────────┼────────────────┼────────────
 0.8x      →│      1.0x     →│     3.0x     (Balanced)
 0.9x      →│      1.0x     →│     2.0x     (Light)
 0.7x      →│      1.0x     →│     4.0x     (Heavy)
@@ -159,7 +159,7 @@ Slow Speed │   Medium Speed   │   High Speed
 ```
 
 ## Share Your Settings
-### App for easy configuration visualisations: https://pointing.streamlit.app/
+### App for easy configuration visualisation: https://pointing.streamlit.app/
 The configurations under are just starting points - every person's perfect pointer settings are as unique as they are) I'd love to see what works best for you.
 
 ### Why Share?
