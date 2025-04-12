@@ -158,6 +158,8 @@ Slow Speed │  Medium Speed  │  High Speed
 0.5x      →│      1.0x     →│     1.5x     (Precision)
 ```
 
+
+
 ## Share Your Settings
 ### App for easy configuration visualisation: https://pointing.streamlit.app/
 The configurations under are just starting points - every person's perfect pointer settings are as unique as they are) I'd love to see what works best for you.
