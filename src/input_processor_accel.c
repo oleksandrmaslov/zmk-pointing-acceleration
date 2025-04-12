@@ -92,8 +92,5 @@ static int accel_handle_event(const struct device *dev, struct input_event *even
     if (!code_matched) {
         return 0;
     }
-
-    /* ...remaining implementation... */
-
     return 0;
 }
