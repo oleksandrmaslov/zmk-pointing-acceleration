@@ -65,7 +65,7 @@ Add the necessary includes to your device overlay file (e.g. `yourkeyboard_left.
 
 ### Configure Acceleration
 
-Add the acceleration configuration to your device overlay. This example provides a balanced acceleration curve:
+Add the acceleration configuration to your device overlay. This configuration should go BEFORE your *input-listener* This example provides a balanced acceleration curve:
 
 ```devicetree
 &pointer_accel {
