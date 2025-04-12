@@ -160,6 +160,7 @@ Slow Speed │   Medium Speed   │   High Speed
 ### General Use:
 ```devicetree
 &pointer_accel {
+    input-type = <INPUT_EV_REL>;
     min-factor = <800>;        // Slight slowdown for precision
     max-factor = <3000>;       // Good acceleration for large movements
     speed-threshold = <1200>;  // Balanced acceleration point
@@ -170,9 +171,11 @@ Slow Speed │   Medium Speed   │   High Speed
 ### Light Acceleration
 ```devicetree
 &pointer_accel {
+    input-type = <INPUT_EV_REL>;
     min-factor = <900>;        // 0.9x minimum
     max-factor = <2000>;       // 2.0x maximum
     speed-threshold = <1500>;  // Start accelerating later
+    speed-max = <5000>;         // 6000 counts/sec for max accel
     acceleration-exponent = <1>; // Linear acceleration
     track-remainders;          // Track fractional movements
 };
@@ -181,9 +184,11 @@ Slow Speed │   Medium Speed   │   High Speed
 ### Heavy Acceleration
 ```devicetree
 &pointer_accel {
+    input-type = <INPUT_EV_REL>;
     min-factor = <700>;        // 0.7x minimum
     max-factor = <4000>;       // 4.0x maximum
     speed-threshold = <1000>;  // Start accelerating earlier
+    speed-max = <6000>;          // 6000 counts/sec for max accel
     acceleration-exponent = <3>; // Cubic acceleration curve
     track-remainders;          // Track fractional movements
 };
@@ -192,9 +197,11 @@ Slow Speed │   Medium Speed   │   High Speed
 ### Precision Mode
 ```devicetree
 &pointer_accel {
+    input-type = <INPUT_EV_REL>;
     min-factor = <500>;        // 0.5x for fine control
     max-factor = <1500>;       // 1.5x maximum
     speed-threshold = <2000>;  // High threshold for stability
+    speed-max = <7000>;          // 6000 counts/sec for max accel
     acceleration-exponent = <1>; // Linear response
     track-remainders;          // Track fractional movements
 };
