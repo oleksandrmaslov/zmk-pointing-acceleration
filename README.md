@@ -188,6 +188,7 @@ The configurations under are just starting points - every person's perfect point
     min-factor = <800>;        // Slight slowdown for precision
     max-factor = <3000>;       // Good acceleration for large movements
     speed-threshold = <1200>;  // Balanced acceleration point
+    speed-max = <6000>;
     acceleration-exponent = <2>; // Smooth quadratic curve
     track-remainders;         // Track fractional movements
 };
