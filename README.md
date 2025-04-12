@@ -9,6 +9,9 @@ The acceleration makes fine cursor control more precise at slow speeds while all
 
 **Device Compatibility Note:** This module has been right now only tested with Cirque trackpads. While it should theoretically work with other pointing devices (trackballs, trackpoints, other trackpads), these are untested, but have to work. Use with non-Cirque devices at your own risk.
 
+**Before you start, you should make sure that you have a working
+input device by following this: https://zmk.dev/docs/features/pointing**
+
 ## Features
 
 - Configurable minimum and maximum acceleration factors
