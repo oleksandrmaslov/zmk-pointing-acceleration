@@ -1,8 +1,13 @@
 # ZMK POINTING ACCELERATION
 
 This repository contains a pointer acceleration implementation for pointing devices in ZMK.
+> [!WARNING]  
+> Known issue: The `&settings_reset` shield currently does not compile. This does not affect normal board builds or functionality.
+> The fix is in progress. Please DM @heisenberg_ukr on Discord if you encounter any other bugs.
 
 The acceleration makes fine cursor control more precise at slow speeds while allowing faster cursor movement when moving quickly. It supports customizable acceleration curves and can be configured for different input devices.
+
+**Device Compatibility Note:** This module has been right now only tested with Cirque trackpads. While it should theoretically work with other pointing devices (trackballs, trackpoints, other trackpads), these are untested, but have to work. Use with non-Cirque devices at your own risk.
 
 ## Features
 
@@ -91,7 +96,7 @@ Add the acceleration processor to your input device's processor chain:
 
 ## Configuration Options
 
-**Visualisation of these settings here:**
+**Visualisation of these settings here: https://pointing.streamlit.app/**
 
 The acceleration processor provides several settings to customize how your pointing device behaves. Here's a detailed explanation of each option:
 
@@ -153,9 +158,23 @@ Slow Speed │   Medium Speed   │   High Speed
 0.5x      →│      1.0x     →│     1.5x     (Precision)
 ```
 
-# Behavior Examples
+## Share Your Settings
+### App for easy configuration visualisations: https://pointing.streamlit.app/
+The configurations under are just starting points - every person's perfect pointer settings are as unique as they are) I'd love to see what works best for you.
 
-## Example Configurations
+### Why Share?
+- Help others find their ideal setup
+- Contribute to the community knowledge
+- Get feedback and suggestions
+- Inspire new configuration ideas
+
+### How to Share
+- Drop your config in a GitHub issue
+- Share on Discord ZMK or my DM (with a quick note about your use case)
+- Comment on what worked/didn't work for you
+
+>  **Remember**: These examples were primarily tested with Cirque trackpads. If you're using other pointing devices (like trackballs or trackpoints), your mileage may vary - and that's why sharing your experience is so valuable
+ 
 
 ### General Use:
 ```devicetree
