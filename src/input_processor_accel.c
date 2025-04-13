@@ -25,6 +25,7 @@ struct accel_config {
     uint32_t speed_threshold;            /* Speed (counts per second) at which factor reaches 1.0 */
     uint32_t speed_max;                  /* Speed (counts per second) at which factor reaches max_factor */
     uint8_t  acceleration_exponent;      /* Exponent for acceleration curve (1=linear, 2=quadratic, etc.) */
+    uint32_t time_window_ms;             /* Time window for velocity calculation */
 };
 
 /* Runtime state for each instance (mutable data) */
@@ -48,7 +49,8 @@ static const struct accel_config accel_config_##inst = {                       \
     .max_factor = DT_INST_PROP_OR(inst, max_factor, 3500),                     \
     .speed_threshold = DT_INST_PROP_OR(inst, speed_threshold, 1000),           \
     .speed_max = DT_INST_PROP_OR(inst, speed_max, 6000),                       \
-    .acceleration_exponent = DT_INST_PROP_OR(inst, acceleration_exponent, 1)   \
+    .acceleration_exponent = DT_INST_PROP_OR(inst, acceleration_exponent, 1),  \
+    .time_window_ms = DT_INST_PROP_OR(inst, time_window_ms, 8),                \
 };                                                                             \
 static struct accel_data accel_data_##inst = {0};                              \
 DEVICE_DT_INST_DEFINE(inst,                                                    \
@@ -92,5 +94,32 @@ static int accel_handle_event(const struct device *dev, struct input_event *even
     if (!code_matched) {
         return 0;
     }
+
+    /* Get current time and calculate delta time */
+    int64_t current_time = k_uptime_get();
+    int32_t delta_time = MAX((int32_t)(current_time - data->last_time), 1);
+    
+    /* Calculate speed (counts per second) */
+    int32_t speed = (abs(event->value) * 1000) / delta_time;
+    
+    /* Calculate acceleration factor */
+    uint32_t accel_factor;
+    if (speed <= cfg->speed_threshold) {
+        accel_factor = cfg->min_factor;
+    } else if (speed >= cfg->speed_max) {
+        accel_factor = cfg->max_factor;
+    } else {
+        accel_factor = cfg->min_factor + 
+            ((speed - cfg->speed_threshold) * 
+             (cfg->max_factor - cfg->min_factor)) /
+            (cfg->speed_max - cfg->speed_threshold);
+    }
+
+    /* Apply acceleration */
+    event->value = (event->value * accel_factor) / 1000;
+    
+    /* Update timestamp */
+    data->last_time = current_time;
+
     return 0;
 }
