@@ -35,8 +35,3 @@ properties:
       type: int
       default: 1       # 1 = linear
       description: Exponent for the acceleration curve. 1 = linear acceleration. 2 or higher applies a more exponential (polynomial) curve for acceleration above the threshold. 
-
-  time-window-ms:
-    type: int
-    default: 8
-    description: Time window in milliseconds for velocity calculation (matches USB polling)

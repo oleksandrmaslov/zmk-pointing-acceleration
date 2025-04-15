@@ -25,7 +25,6 @@ struct accel_config {
     uint32_t speed_threshold;            /* Speed (counts per second) at which factor reaches 1.0 */
     uint32_t speed_max;                  /* Speed (counts per second) at which factor reaches max_factor */
     uint8_t  acceleration_exponent;      /* Exponent for acceleration curve (1=linear, 2=quadratic, etc.) */
-    uint32_t time_window_ms;             /* Time window for velocity calculation */
 };
 
 /* Runtime state for each instance (mutable data) */
@@ -49,8 +48,7 @@ static const struct accel_config accel_config_##inst = {                       \
     .max_factor = DT_INST_PROP_OR(inst, max_factor, 3500),                     \
     .speed_threshold = DT_INST_PROP_OR(inst, speed_threshold, 1000),           \
     .speed_max = DT_INST_PROP_OR(inst, speed_max, 6000),                       \
-    .acceleration_exponent = DT_INST_PROP_OR(inst, acceleration_exponent, 1),  \
-    .time_window_ms = DT_INST_PROP_OR(inst, time_window_ms, 8),                \
+    .acceleration_exponent = DT_INST_PROP_OR(inst, acceleration_exponent, 1)   \
 };                                                                             \
 static struct accel_data accel_data_##inst = {0};                              \
 DEVICE_DT_INST_DEFINE(inst,                                                    \
@@ -95,30 +93,45 @@ static int accel_handle_event(const struct device *dev, struct input_event *even
         return 0;
     }
 
-    /* Get current time and calculate delta time */
+    /* Get the current timestamp */
     int64_t current_time = k_uptime_get();
-    int32_t delta_time = MAX((int32_t)(current_time - data->last_time), 1);
-    
-    /* Calculate speed (counts per second) */
-    int32_t speed = (abs(event->value) * 1000) / delta_time;
-    
-    /* Calculate acceleration factor */
-    uint32_t accel_factor;
-    if (speed <= cfg->speed_threshold) {
-        accel_factor = cfg->min_factor;
-    } else if (speed >= cfg->speed_max) {
-        accel_factor = cfg->max_factor;
-    } else {
-        accel_factor = cfg->min_factor + 
-            ((speed - cfg->speed_threshold) * 
-             (cfg->max_factor - cfg->min_factor)) /
-            (cfg->speed_max - cfg->speed_threshold);
+    int64_t delta_time = current_time - data->last_time;
+
+    /* Skip processing if delta_time is too small (e.g., first event or noise) */
+    if (delta_time <= 0) {
+        data->last_time = current_time;
+        return 0;
     }
 
-    /* Apply acceleration */
-    event->value = (event->value * accel_factor) / 1000;
-    
-    /* Update timestamp */
+    /* Calculate speed (counts per second) */
+    int32_t delta = event->value;
+    float speed = (float)abs(delta) / ((float)delta_time / 1000.0f); // Speed in counts/sec
+
+    /* Determine acceleration factor */
+    float factor = 1.0f; // Default factor (no acceleration)
+    if (speed > cfg->speed_threshold) {
+        float normalized_speed = (speed - cfg->speed_threshold) /
+                                 (cfg->speed_max - cfg->speed_threshold);
+        normalized_speed = normalized_speed > 1.0f ? 1.0f : normalized_speed;
+
+        factor = cfg->min_factor / 1000.0f +
+                 (cfg->max_factor / 1000.0f - cfg->min_factor / 1000.0f) *
+                     powf(normalized_speed, cfg->acceleration_exponent);
+    }
+
+    /* Apply acceleration factor */
+    float adjusted_delta = delta * factor;
+
+    /* Track remainders if enabled */
+    if (cfg->track_remainders) {
+        adjusted_delta += data->remainders[code_index];
+        data->remainders[code_index] = (int16_t)(adjusted_delta - (int32_t)adjusted_delta);
+    }
+
+    /* Update the event value */
+    event->value = (int32_t)adjusted_delta;
+
+    /* Update the last timestamp */
     data->last_time = current_time;
 
     return 0;
