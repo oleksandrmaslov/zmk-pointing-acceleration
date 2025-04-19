@@ -29,11 +29,8 @@ struct accel_config {
 
 /* Runtime state for each instance (mutable data) */
 struct accel_data {
-    int64_t last_time;                   /* Timestamp of last processed event (ms) */
-    int32_t last_phys_dx;                /* Last physical X delta (for direction check) */
-    int32_t last_phys_dy;                /* Last physical Y delta (for direction check) */
-    uint16_t last_code;                  /* Last event code processed (e.g. REL_X or REL_Y) */
-    int16_t remainders[ACCEL_MAX_CODES]; /* Remainder values for fractional movements per code */
+    int64_t last_time[ACCEL_MAX_CODES];         /* Timestamp per axis */
+    int16_t remainders[ACCEL_MAX_CODES];        /* Remainder values per axis */
 };
 
 /* Populate config and data for each instance from devicetree */
@@ -95,11 +92,11 @@ static int accel_handle_event(const struct device *dev, struct input_event *even
 
     /* Get the current timestamp */
     int64_t current_time = k_uptime_get();
-    int64_t delta_time = current_time - data->last_time;
+    int64_t delta_time = current_time - data->last_time[code_index];
 
     /* Skip processing if delta_time is too small (e.g., first event or noise) */
     if (delta_time <= 0) {
-        data->last_time = current_time;
+        data->last_time[code_index] = current_time;
         return 0;
     }
 
@@ -131,8 +128,8 @@ static int accel_handle_event(const struct device *dev, struct input_event *even
     /* Update the event value */
     event->value = (int32_t)adjusted_delta;
 
-    /* Update the last timestamp */
-    data->last_time = current_time;
+    /* Update the last timestamp for this axis */
+    data->last_time[code_index] = current_time;
 
     return 0;
 }
