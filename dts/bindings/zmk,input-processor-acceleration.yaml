@@ -39,3 +39,12 @@ properties:
   track-remainders:
     type: boolean
     description: Accumulate and apply fractional movement remainders for higher precision.
+
+  sigmoid-curve:
+    type: int
+    default: 3
+    description: Steepness of the sigmoid acceleration curve.
+  sigmoid-x0:
+    type: int
+    default: 500
+    description: Midpoint of the sigmoid curve (scaled by 1000).
