@@ -25,15 +25,14 @@ struct accel_config {
     uint32_t speed_threshold;            /* Speed (counts per second) at which factor reaches 1.0 */
     uint32_t speed_max;                  /* Speed (counts per second) at which factor reaches max_factor */
     uint8_t  acceleration_exponent;      /* Exponent for acceleration curve (1=linear, 2=quadratic, etc.) */
+    uint8_t  sigmoid_curve;              /* Steepness of sigmoid curve */
+    uint16_t sigmoid_x0;                 /* Midpoint of sigmoid curve */
 };
 
 /* Runtime state for each instance (mutable data) */
 struct accel_data {
-    int64_t last_time;                   /* Timestamp of last processed event (ms) */
-    int32_t last_phys_dx;                /* Last physical X delta (for direction check) */
-    int32_t last_phys_dy;                /* Last physical Y delta (for direction check) */
-    uint16_t last_code;                  /* Last event code processed (e.g. REL_X or REL_Y) */
-    int16_t remainders[ACCEL_MAX_CODES]; /* Remainder values for fractional movements per code */
+    int64_t last_time[ACCEL_MAX_CODES];         /* Timestamp per axis */
+    int16_t remainders[ACCEL_MAX_CODES];        /* Remainder values per axis */
 };
 
 /* Populate config and data for each instance from devicetree */
@@ -48,7 +47,9 @@ static const struct accel_config accel_config_##inst = {                       \
     .max_factor = DT_INST_PROP_OR(inst, max_factor, 3500),                     \
     .speed_threshold = DT_INST_PROP_OR(inst, speed_threshold, 1000),           \
     .speed_max = DT_INST_PROP_OR(inst, speed_max, 6000),                       \
-    .acceleration_exponent = DT_INST_PROP_OR(inst, acceleration_exponent, 1)   \
+    .acceleration_exponent = DT_INST_PROP_OR(inst, acceleration_exponent, 1),  \
+    .sigmoid_curve = DT_INST_PROP_OR(inst, sigmoid_curve, 3),                  \
+    .sigmoid_x0 = DT_INST_PROP_OR(inst, sigmoid_x0, 500),                      \
 };                                                                             \
 static struct accel_data accel_data_##inst = {0};                              \
 DEVICE_DT_INST_DEFINE(inst,                                                    \
@@ -92,5 +93,65 @@ static int accel_handle_event(const struct device *dev, struct input_event *even
     if (!code_matched) {
         return 0;
     }
+
+    /* Get the current timestamp */
+    int64_t current_time = k_uptime_get();
+    int64_t delta_time = current_time - data->last_time[code_index];
+
+    /* Skip processing if delta_time is too small (e.g., first event or noise) */
+    if (delta_time <= 0) {
+        data->last_time[code_index] = current_time;
+        return 0;
+    }
+
+    /* Calculate speed (counts per second) */
+    int32_t delta = event->value;
+    float speed = (float)abs(delta) / ((float)delta_time / 1000.0f); // Speed in counts/sec
+
+    /* --- Apple-like Acceleration Curve --- */
+    float factor = 1.0f; // Default: no acceleration
+
+    // Parameters for tuning
+    float min_factor = cfg->min_factor / 1000.0f;
+    float max_factor = cfg->max_factor / 1000.0f;
+    float threshold = cfg->speed_threshold;
+    float max_speed = cfg->speed_max;
+    float curve = cfg->sigmoid_curve;
+    float x0 = cfg->sigmoid_x0 / 1000.0f;
+
+    // Clamp speed to [threshold, max_speed]
+    float normalized = (speed - threshold) / (max_speed - threshold);
+    if (normalized < 0.0f) normalized = 0.0f;
+    if (normalized > 1.0f) normalized = 1.0f;
+
+    // Sigmoid (logistic) acceleration curve for natural feel
+    factor = min_factor + (max_factor - min_factor) / (1.0f + expf(-curve * (normalized - x0)));
+
+    // Low-speed precision: no acceleration below threshold
+    if (speed < threshold) {
+        factor = 1.0f;
+    }
+
+    /* Apply acceleration factor */
+    float adjusted_delta = delta * factor;
+
+    /* Optional: simple smoothing (moving average, per axis) */
+    // static float smoothed_delta[ACCEL_MAX_CODES] = {0};
+    // float alpha = 0.5f; // 0.0 = no smoothing, 1.0 = max smoothing
+    // smoothed_delta[code_index] = alpha * adjusted_delta + (1.0f - alpha) * smoothed_delta[code_index];
+    // adjusted_delta = smoothed_delta[code_index];
+
+    /* Track remainders if enabled */
+    if (cfg->track_remainders) {
+        adjusted_delta += data->remainders[code_index];
+        data->remainders[code_index] = (int16_t)(adjusted_delta - (int32_t)adjusted_delta);
+    }
+
+    /* Update the event value */
+    event->value = (int32_t)adjusted_delta;
+
+    /* Update the last timestamp for this axis */
+    data->last_time[code_index] = current_time;
+
     return 0;
 }
