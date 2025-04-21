@@ -1,4 +1,4 @@
-# FOR TESTING PURPOSES ONLY, DO NOT USE IT
+# Timer based pointing acceleration
 
 This repository contains a pointer acceleration implementation for pointing devices in ZMK.
 > [!WARNING]  
