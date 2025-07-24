@@ -1,1 +1,15 @@
-rsource "src/Kconfig"
+# SPDX-License-Identifier: MIT
+# Kconfig для ZMK Input Processor Acceleration
+
+config ZMK_INPUT_PROCESSOR_ACCELERATION
+    bool "Enable input processor acceleration"
+    default n
+    depends on ZMK_POINTING
+    depends on INPUT
+    help
+        Enables velocity-based acceleration for relative pointer input events.
+
+config INPUT_PROCESSOR_ACCELERATION_INIT_PRIORITY
+    int "Input processor acceleration initialization priority"
+    default 90
+    depends on ZMK_INPUT_PROCESSOR_ACCELERATION

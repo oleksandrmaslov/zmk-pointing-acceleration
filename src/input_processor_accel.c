@@ -1,10 +1,12 @@
 #include <zephyr/kernel.h>
 #include <zephyr/device.h>
+#include <zephyr/toolchain.h>
 #include <drivers/input_processor.h>
 #include <zephyr/dt-bindings/input/input-event-codes.h>
 #include <stdlib.h>  // For abs() function
 
 #define DT_DRV_COMPAT zmk_input_processor_acceleration
+#if DT_HAS_COMPAT_STATUS_OKAY(DT_DRV_COMPAT)
 
 /* Forward declaration of the event handler */
 static int accel_handle_event(const struct device *dev, struct input_event *event,
@@ -69,6 +71,7 @@ DT_INST_FOREACH_STATUS_OKAY(ACCEL_INST_INIT)
 static int accel_handle_event(const struct device *dev, struct input_event *event,
                               uint32_t param1, uint32_t param2,
                               struct zmk_input_processor_state *state) {
+    ARG_UNUSED(param1);
     ARG_UNUSED(param2);
     ARG_UNUSED(state);
     const struct accel_config *cfg = dev->config;
@@ -94,3 +97,4 @@ static int accel_handle_event(const struct device *dev, struct input_event *even
     }
     return 0;
 }
+#endif // DT_HAS_COMPAT_STATUS_OKAY(DT_DRV_COMPAT)
