@@ -1,5 +1,6 @@
 #include <zephyr/kernel.h>
 #include <zephyr/device.h>
+#include <zephyr/sys/util.h>
 #include <zephyr/toolchain.h>
 #include <drivers/input_processor.h>
 #include <zephyr/dt-bindings/input/input-event-codes.h>
@@ -44,7 +45,7 @@ static const uint16_t accel_codes_##inst[] = { INPUT_REL_X, INPUT_REL_Y };     \
 static const struct accel_config accel_config_##inst = {                       \
     .input_type = DT_INST_PROP_OR(inst, input_type, INPUT_EV_REL),             \
     .codes = accel_codes_##inst,                                               \
-    .codes_count = 2,                                                          \
+    .codes_count = ARRAY_SIZE(accel_codes_##inst),                                                          \
     .track_remainders = DT_INST_NODE_HAS_PROP(inst, track_remainders),         \
     .min_factor = DT_INST_PROP_OR(inst, min_factor, 1000),                     \
     .max_factor = DT_INST_PROP_OR(inst, max_factor, 3500),                     \
