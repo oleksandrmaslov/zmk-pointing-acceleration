@@ -1,15 +1,16 @@
-# ZMK Pointing Acceleration
+# ZMK POINTING ACCELERATION
 
-This repository contains a velocity-based pointer acceleration implementation for pointing devices in ZMK.
-
-> [!WARNING]
-> This module is currently in beta. While it has been tested with Cirque trackpads, compatibility with other pointing devices may vary. Please report any issues you encounter.
+This repository contains a pointer acceleration implementation for pointing devices in ZMK.
+> [!WARNING]  
+> Known issue: The `&settings_reset` shield currently does not compile. This does not affect normal board builds or functionality.
+> The fix is in progress. Please DM @heisenberg_ukr on Discord if you encounter any other bugs.
 
 The acceleration makes fine cursor control more precise at slow speeds while allowing faster cursor movement when moving quickly. It supports customizable acceleration curves and can be configured for different input devices.
 
-**Device Compatibility:** This module has been primarily tested with Cirque trackpads. It should work with other relative input devices (trackballs, trackpoints, other trackpads), but these configurations are less tested.
+**Device Compatibility Note:** This module has been right now only tested with Cirque trackpads. While it should theoretically work with other pointing devices (trackballs, trackpoints, other trackpads), these are untested, but have to work. Use with non-Cirque devices at your own risk.
 
-**Prerequisites:** Before using this module, ensure you have a working input device by following the [ZMK pointing documentation](https://zmk.dev/docs/features/pointing).
+**Before you start, you should make sure that you have a working
+input device by following this: https://zmk.dev/docs/features/pointing**
 
 ## Features
 
@@ -21,14 +22,15 @@ The acceleration makes fine cursor control more precise at slow speeds while all
 
 ## Installation & Usage
 
-To use pointer acceleration, follow these steps:
+To use pointer acceleration, there are several steps necessary:
+- adjust the `west.yml` to make the acceleration module available
+- import the dependencies into your configuration files
+- configure the acceleration parameters
+- add the acceleration processor to your input chain
 
-1. Add the acceleration module to your `west.yml`
-2. Import the dependencies into your configuration files
-3. Configure the acceleration parameters
-4. Add the acceleration processor to your input chain
+We'll go through these steps one by one.
 
-### Step 1: Update west.yml
+### Adjust west.yml
 
 Add the acceleration module to your `west.yml`:
 
@@ -38,70 +40,46 @@ manifest:
     - name: zmkfirmware
       url-base: https://github.com/zmkfirmware
     - name: oleksandrmaslov
-      url-base: https://github.com/oleksandrmaslov
+      url-base: https://github.com/oleksandrmaslov      
   projects:
+    - name: zmk-pointing-acceleration
+      remote: oleksandrmaslov
+      revision: main
     - name: zmk
       remote: zmkfirmware
       revision: main
       import: app/west.yml
-    - name: zmk-pointing-acceleration
-      remote: oleksandrmaslov
-      revision: main
-  self:
-    path: config
 ```
 
-> [!NOTE]
-> Run `west update` after modifying west.yml if you're building locally.
+> [!WARNING]  
+> Run `west update` if you're building on your local machine (not github actions).
 
-### Step 2: Import Dependencies
+### Import the dependencies
 
-Add the necessary includes to your device overlay file (e.g., `yourkeyboard_left.overlay`):
+Add the necessary includes to your device overlay file (e.g. `yourkeyboard_left.overlay`):
 
-```devicetree
+```C
+#include <input/processors.dtsi>
 #include <behaviors/input_gestures_accel.dtsi>
 ```
 
-### Step 3: Configure Acceleration
+### Configure Acceleration
 
-Add the acceleration configuration to your device overlay. This configuration should go **before** your input-listener.
-
-**Option A: Override the included definition (Recommended)**
+Add the acceleration configuration to your device overlay. This configuration should go BEFORE your *input-listener* This example provides a balanced acceleration curve:
 
 ```devicetree
 &pointer_accel {
-    input-type = <INPUT_EV_REL>;       // For relative input devices
-    codes = <INPUT_REL_X INPUT_REL_Y>; // X and Y axis events
-    track-remainders;                  // Accumulate fractional movements
-    min-factor = <800>;                // 0.8x at very slow speeds
-    max-factor = <3000>;               // 3.0x at fast speeds
-    speed-threshold = <1200>;          // 1200 counts/sec for 1x
-    speed-max = <6000>;                // 6000 counts/sec for max accel
-    acceleration-exponent = <2>;       // Quadratic acceleration curve
+    input-type = <INPUT_EV_REL>;  // For relative input devices
+    track-remainders;             // Accumulate fractional movements
+    min-factor = <800>;          // 0.8x at very slow speeds
+    max-factor = <3000>;         // 3.0x at fast speeds
+    speed-threshold = <1200>;     // 1200 counts/sec for 1x
+    speed-max = <6000>;          // 6000 counts/sec for max accel
+    acceleration-exponent = <2>;  // Quadratic acceleration curve
 };
 ```
 
-**Option B: Define your own instance**
-
-```devicetree
-/ {
-    my_pointer_accel: my_pointer_accel {
-        compatible = "zmk,input-processor-acceleration";
-        status = "okay";
-        #input-processor-cells = <0>;
-        input-type = <INPUT_EV_REL>;
-        codes = <INPUT_REL_X INPUT_REL_Y>;
-        track-remainders;
-        min-factor = <800>;
-        max-factor = <3000>;
-        speed-threshold = <1200>;
-        speed-max = <6000>;
-        acceleration-exponent = <2>;
-    };
-};
-```
-
-### Step 4: Add to Input Chain
+### Add to Input Chain
 
 Add the acceleration processor to your input device's processor chain:
 
@@ -112,9 +90,8 @@ Add the acceleration processor to your input device's processor chain:
         status = "okay";
         device = <&glidepoint>;
         input-processors = <
-            &pointer_accel       // Use the included definition
-            // OR &my_pointer_accel if you defined your own
-            &zip_xy_transform    // Other processors as needed
+            &pointer_accel      // Acceleration processor
+            &zip_xy_transform
         >;
     };
 };
@@ -122,87 +99,54 @@ Add the acceleration processor to your input device's processor chain:
 
 ## Configuration Options
 
-> [!TIP] > **Visual Configuration Tool:** Use the interactive configuration visualizer at https://pointing.streamlit.app/ to experiment with different settings.
+**Visualisation of these settings here: https://pointing.streamlit.app/**
 
-The acceleration processor provides several settings to customize how your pointing device behaves:
+The acceleration processor provides several settings to customize how your pointing device behaves. Here's a detailed explanation of each option:
 
 ### Basic Settings
 
-**`min-factor`** (Default: 1000)
+- `min-factor`: (Default: 1000)
+  - Controls how slow movements are handled
+  - Values below 1000 will make slow movements even slower for precision
+  - Values are in thousandths (e.g., 800 = 0.8x speed)
+  - Example: `min-factor = <800>` makes slow movements 20% slower
 
-- Controls how slow movements are handled
-- Values below 1000 make slow movements slower for precision
-- Values are in thousandths (e.g., 800 = 0.8x speed)
-- Example: `min-factor = <800>;` makes slow movements 20% slower
-
-**`max-factor`** (Default: 3500)
-
-- Controls maximum acceleration at high speeds
-- Values are in thousandths (e.g., 3500 = 3.5x speed)
-- Example: `max-factor = <3000>;` means fast movements are up to 3x faster
+- `max-factor`: (Default: 3500)
+  - Controls maximum acceleration at high speeds
+  - Values are in thousandths (e.g., 3500 = 3.5x speed)
+  - Example: `max-factor = <3000>` means fast movements are up to 3x faster
 
 ### Speed Settings
 
-**`speed-threshold`** (Default: 1000)
+- `speed-threshold`: (Default: 1000)
+  - Speed at which acceleration starts
+  - Measured in counts per second
+  - Below this speed, min-factor is applied
+  - Above this speed, acceleration begins
+  - Example: `speed-threshold = <1200>` means acceleration starts at moderate speeds
 
-- Speed at which acceleration starts
-- Measured in counts per second
-- Below this speed, min-factor is applied
-- Above this speed, acceleration begins
-- Example: `speed-threshold = <1200>;` means acceleration starts at moderate speeds
-
-**`speed-max`** (Default: 6000)
-
-- Speed at which maximum acceleration is reached
-- Measured in counts per second
-- At this speed and above, max-factor is applied
-- Example: `speed-max = <6000>;` means you reach max acceleration at high speeds
+- `speed-max`: (Default: 6000)
+  - Speed at which maximum acceleration is reached
+  - Measured in counts per second
+  - At this speed and above, max-factor is applied
+  - Example: `speed-max = <6000>` means you reach max acceleration at high speeds
 
 ### Acceleration Behavior
 
-**`acceleration-exponent`** (Default: 1)
-
-- Controls how quickly acceleration increases
-- `1` = Linear (smooth, gradual acceleration)
-- `2` = Quadratic (acceleration increases more rapidly)
-- `3` = Cubic (very rapid acceleration increase)
-- Example: `acceleration-exponent = <2>;` for a more aggressive acceleration curve
+- `acceleration-exponent`: (Default: 1)
+  - Controls how quickly acceleration increases
+  - 1 = Linear (smooth, gradual acceleration)
+  - 2 = Quadratic (acceleration increases more rapidly)
+  - 3 = Cubic (very rapid acceleration increase)
+  - Example: `acceleration-exponent = <2>` for a more aggressive acceleration curve
 
 ### Advanced Options
 
-**`track-remainders`** (Default: disabled)
+- `track-remainders`: (Default: disabled)
+  - Enables tracking of fractional movements
+  - Improves precision by accumulating small movements
+  - Enable with `track-remainders;` in your config
 
-- Enables tracking of fractional movements
-- Improves precision by accumulating small movements
-- Enable with `track-remainders;` in your config
-
-**`input-type`** (Default: INPUT_EV_REL)
-
-- Specifies the input event type to process
-- Use `INPUT_EV_REL` for relative input devices (trackpads, mice)
-
-**`codes`** (Required)
-
-- Array of event codes to accelerate
-- Use `<INPUT_REL_X INPUT_REL_Y>` for X and Y axis movement
-- Can include additional codes like scroll wheel events if needed
-
-### Device Tree Properties
-
-**`compatible`** (Required)
-
-- Must be `"zmk,input-processor-acceleration"`
-- Identifies this as a ZMK input processor acceleration instance
-
-**`status`** (Default: "okay")
-
-- Device status, use `"okay"` to enable
-- Set to `"disabled"` to temporarily disable without removing configuration
-
-**`#input-processor-cells`** (Required)
-
-- Must be `<0>` for this processor type
-- Defines the number of cells in input processor references
 
 ### Visual Examples
 
@@ -217,116 +161,73 @@ Slow Speed │  Medium Speed  │  High Speed
 0.5x      →│      1.0x     →│     1.5x     (Precision)
 ```
 
-## Example Configurations
 
-> [!NOTE] > **Interactive Configuration Tool:** Visit https://pointing.streamlit.app/ for easy configuration visualization.
 
-The following configurations are starting points - every person's perfect pointer settings are unique. Feel free to experiment and find what works best for you.
+## Share Your Settings
+### App for easy configuration visualisation: https://pointing.streamlit.app/
+The configurations under are just starting points - every person's perfect pointer settings are as unique as they are) I'd love to see what works best for you.
 
-### Why Share Your Settings?
-
+### Why Share?
 - Help others find their ideal setup
-- Contribute to community knowledge
+- Contribute to the community knowledge
 - Get feedback and suggestions
 - Inspire new configuration ideas
 
 ### How to Share
+- Drop your config in a GitHub issue
+- Share on Discord ZMK or my DM (with a quick note about your use case)
+- Comment on what worked/didn't work for you
 
-- Create a GitHub issue with your configuration
-- Share on Discord ZMK community
-- Comment on what worked/didn't work for your use case
+>  **Remember**: These examples were primarily tested with Cirque trackpads. If you're using other pointing devices (like trackballs or trackpoints), your mileage may vary - and that's why sharing your experience is so valuable
+ 
 
-> **Note:** These examples were primarily tested with Cirque trackpads. Results may vary with other pointing devices.
-
-### General Use (Balanced)
-
+### General Use:
 ```devicetree
 &pointer_accel {
     input-type = <INPUT_EV_REL>;
-    codes = <INPUT_REL_X INPUT_REL_Y>; // X and Y axis events
-    min-factor = <800>;           // Slight slowdown for precision
-    max-factor = <3000>;          // Good acceleration for large movements
-    speed-threshold = <1200>;     // Balanced acceleration point
-    speed-max = <6000>;           // Max acceleration at high speeds
-    acceleration-exponent = <2>;  // Smooth quadratic curve
-    track-remainders;             // Track fractional movements
+    min-factor = <800>;        // Slight slowdown for precision
+    max-factor = <3000>;       // Good acceleration for large movements
+    speed-threshold = <1200>;  // Balanced acceleration point
+    speed-max = <6000>;
+    acceleration-exponent = <2>; // Smooth quadratic curve
+    track-remainders;         // Track fractional movements
 };
 ```
-
-### Light Acceleration (Conservative)
-
+### Light Acceleration
 ```devicetree
 &pointer_accel {
     input-type = <INPUT_EV_REL>;
-    codes = <INPUT_REL_X INPUT_REL_Y>; // X and Y axis events
-    min-factor = <900>;           // 0.9x minimum
-    max-factor = <2000>;          // 2.0x maximum
-    speed-threshold = <1500>;     // Start accelerating later
-    speed-max = <5000>;           // Conservative max speed
-    acceleration-exponent = <1>;  // Linear acceleration
-    track-remainders;             // Track fractional movements
+    min-factor = <900>;        // 0.9x minimum
+    max-factor = <2000>;       // 2.0x maximum
+    speed-threshold = <1500>;  // Start accelerating later
+    speed-max = <5000>;         // 6000 counts/sec for max accel
+    acceleration-exponent = <1>; // Linear acceleration
+    track-remainders;          // Track fractional movements
 };
 ```
 
-### Heavy Acceleration (Aggressive)
-
+### Heavy Acceleration
 ```devicetree
 &pointer_accel {
     input-type = <INPUT_EV_REL>;
-    codes = <INPUT_REL_X INPUT_REL_Y>; // X and Y axis events
-    min-factor = <700>;           // 0.7x minimum
-    max-factor = <4000>;          // 4.0x maximum
-    speed-threshold = <1000>;     // Start accelerating earlier
-    speed-max = <6000>;           // High max speed
-    acceleration-exponent = <3>;  // Cubic acceleration curve
-    track-remainders;             // Track fractional movements
+    min-factor = <700>;        // 0.7x minimum
+    max-factor = <4000>;       // 4.0x maximum
+    speed-threshold = <1000>;  // Start accelerating earlier
+    speed-max = <6000>;          // 6000 counts/sec for max accel
+    acceleration-exponent = <3>; // Cubic acceleration curve
+    track-remainders;          // Track fractional movements
 };
 ```
 
-### Precision Mode (Fine Control)
-
+### Precision Mode
 ```devicetree
 &pointer_accel {
     input-type = <INPUT_EV_REL>;
-    codes = <INPUT_REL_X INPUT_REL_Y>; // X and Y axis events
-    min-factor = <500>;           // 0.5x for fine control
-    max-factor = <1500>;          // 1.5x maximum
-    speed-threshold = <2000>;     // High threshold for stability
-    speed-max = <7000>;           // High max speed threshold
-    acceleration-exponent = <1>;  // Linear response
-    track-remainders;             // Track fractional movements
+    min-factor = <500>;        // 0.5x for fine control
+    max-factor = <1500>;       // 1.5x maximum
+    speed-threshold = <2000>;  // High threshold for stability
+    speed-max = <7000>;          // 6000 counts/sec for max accel
+    acceleration-exponent = <1>; // Linear response
+    track-remainders;          // Track fractional movements
 };
 ```
-
-## Troubleshooting
-
-### Build Issues
-
-If you encounter build errors:
-
-1. Ensure `west update` has been run after modifying `west.yml`
-2. Check that the include path is correct: `#include <behaviors/input_gestures_accel.dtsi>`
-3. Verify your ZMK version supports input processors
-4. Make sure the acceleration configuration comes before your input-listener
-
-### Runtime Issues
-
-If acceleration doesn't work as expected:
-
-1. Verify your input device is working without acceleration first
-2. Check that the processor is in the correct order in your input chain
-3. Try simpler settings first (linear acceleration with exponent = 1)
-4. Enable `track-remainders` for better precision with small movements
-
-## Contributing
-
-Contributions are welcome! Please:
-
-1. Test your changes with different input devices if possible
-2. Update documentation for any new features
-3. Follow the existing code style
-4. Submit pull requests with clear descriptions
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

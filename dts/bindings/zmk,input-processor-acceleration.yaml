@@ -3,41 +3,38 @@ description: ZMK Velocity-Based Pointer Acceleration Input Processor
 
 compatible: "zmk,input-processor-acceleration"
 
+include: ip_zero_param.yaml      # (Standard input device base binding, if applicable)
+
 properties:
   input-type:
     type: int
     required: true
     description: Input event type to accelerate (e.g. INPUT_EV_REL for relative events)
-
-  codes:
-    type: array
-    required: true
-    description: Array of event code values to accelerate (e.g. REL_X, REL_Y)
-
+    
   min-factor:
     type: int
-    default: 1000 # 1.000x (no deceleration by default)
+    default: 1000    # 1.000x (no deceleration by default)
     description: Minimum pointer speed factor (scaled by 1000). Values <1000 slow down movements at very low speeds (e.g. 500 for 0.5x).
 
   max-factor:
     type: int
-    default: 3500 # 3.500x
+    default: 3500    # 3.500x
     description: Maximum pointer speed factor (scaled by 1000). Movement will be accelerated up to this factor at high speeds.
 
   speed-threshold:
     type: int
-    default: 1000 # counts per second
+    default: 1000    # counts per second
     description: Pointer speed (counts per second) at which acceleration factor reaches 1.0 (no scaling). Below this speed, movements may be decelerated; above it, movements accelerate.
 
   speed-max:
-    type: int
-    default: 6000 # counts per second
-    description: Pointer speed (counts per second) at which the acceleration factor reaches max-factor. Movements faster than this use the maximum acceleration.
+      type: int
+      default: 6000    # counts per second
+      description: Pointer speed (counts per second) at which the acceleration factor reaches max-factor. Movements faster than this use the maximum acceleration.
 
   acceleration-exponent:
-    type: int
-    default: 1 # 1 = linear
-    description: Exponent for the acceleration curve. 1 = linear acceleration. 2 or higher applies a more exponential (polynomial) curve for acceleration above the threshold.
+      type: int
+      default: 1       # 1 = linear
+      description: Exponent for the acceleration curve. 1 = linear acceleration. 2 or higher applies a more exponential (polynomial) curve for acceleration above the threshold. 
 
   track-remainders:
     type: boolean
