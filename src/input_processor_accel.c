@@ -95,6 +95,87 @@ static int accel_handle_event(const struct device *dev, struct input_event *even
     if (!code_matched) {
         return 0;
     }
+
+        /* Skip zero-value events */
+    if (event->value == 0) {
+        return 0;
+    }
+
+    /* Validate code_index bounds */
+    if (code_index >= ACCEL_MAX_CODES) {
+        return 0;
+    }
+
+    /* Get current timestamp */
+    int64_t current_time = k_uptime_get();
+    
+    /* Calculate time delta and speed */
+    int64_t time_delta = current_time - data->last_time;
+    if (time_delta <= 0) {
+        time_delta = 1; /* Avoid division by zero */
+    }
+    
+    /* Calculate speed in counts per second */
+    uint32_t speed = (abs(event->value) * 1000) / time_delta;
+    
+    /* Calculate acceleration factor based on speed */
+    uint16_t factor = cfg->min_factor;
+    
+    if (speed > cfg->speed_threshold) {
+        if (speed >= cfg->speed_max) {
+            factor = cfg->max_factor;
+        } else {
+            /* Interpolate between min and max factor based on speed */
+            uint32_t speed_range = cfg->speed_max - cfg->speed_threshold;
+            uint32_t factor_range = cfg->max_factor - cfg->min_factor;
+            uint32_t speed_offset = speed - cfg->speed_threshold;
+            
+            /* Apply acceleration exponent */
+            uint32_t normalized_speed = (speed_offset * 1000) / speed_range;
+            uint32_t accelerated_speed = normalized_speed;
+            
+            /* Simple exponent implementation for common cases */
+            if (cfg->acceleration_exponent == 2) {
+                accelerated_speed = (normalized_speed * normalized_speed) / 1000;
+            } else if (cfg->acceleration_exponent == 3) {
+                accelerated_speed = (normalized_speed * normalized_speed * normalized_speed) / (1000 * 1000);
+            }
+            
+            factor = cfg->min_factor + ((factor_range * accelerated_speed) / 1000);
+            if (factor > cfg->max_factor) {
+                factor = cfg->max_factor;
+            }
+        }
+    }
+    
+    /* Apply acceleration factor */
+    int32_t accelerated_value = (event->value * factor) / 1000;
+    
+    /* Handle remainders if enabled */
+    if (cfg->track_remainders && code_index < ACCEL_MAX_CODES) {
+        int32_t remainder = ((event->value * factor) % 1000) / 100; /* Scale to avoid overflow */
+        data->remainders[code_index] += remainder;
+        
+        /* Add accumulated remainder to output */
+        if (abs(data->remainders[code_index]) >= 10) {
+            int32_t remainder_contribution = data->remainders[code_index] / 10;
+            accelerated_value += remainder_contribution;
+            data->remainders[code_index] -= remainder_contribution * 10;
+        }
+    }
+    
+    /* Update tracking data */
+    data->last_time = current_time;
+    data->last_code = event->code;
+    if (event->code == INPUT_REL_X) {
+        data->last_phys_dx = event->value;
+    } else if (event->code == INPUT_REL_Y) {
+        data->last_phys_dy = event->value;
+    }
+    
+    /* Update event value with accelerated result */
+    event->value = accelerated_value;
+
     return 0;
 }
 #endif // DT_HAS_COMPAT_STATUS_OKAY(DT_DRV_COMPAT)
