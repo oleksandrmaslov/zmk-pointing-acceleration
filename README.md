@@ -1,6 +1,7 @@
 # ZMK POINTING ACCELERATION
 
 This repository contains a pointer acceleration implementation for pointing devices in ZMK.
+
 > [!WARNING]  
 > Known issue: The `&settings_reset` shield currently does not compile. This does not affect normal board builds or functionality.
 > The fix is in progress. Please DM @heisenberg_ukr on Discord if you encounter any other bugs.
@@ -23,6 +24,7 @@ input device by following this: https://zmk.dev/docs/features/pointing**
 ## Installation & Usage
 
 To use pointer acceleration, there are several steps necessary:
+
 - adjust the `west.yml` to make the acceleration module available
 - import the dependencies into your configuration files
 - configure the acceleration parameters
@@ -40,7 +42,7 @@ manifest:
     - name: zmkfirmware
       url-base: https://github.com/zmkfirmware
     - name: oleksandrmaslov
-      url-base: https://github.com/oleksandrmaslov      
+      url-base: https://github.com/oleksandrmaslov
   projects:
     - name: zmk-pointing-acceleration
       remote: oleksandrmaslov
@@ -65,11 +67,12 @@ Add the necessary includes to your device overlay file (e.g. `yourkeyboard_left.
 
 ### Configure Acceleration
 
-Add the acceleration configuration to your device overlay. This configuration should go BEFORE your *input-listener* This example provides a balanced acceleration curve:
+Add the acceleration configuration to your device overlay. This configuration should go BEFORE your _input-listener_ This example provides a balanced acceleration curve:
 
 ```devicetree
 &pointer_accel {
     input-type = <INPUT_EV_REL>;  // For relative input devices
+    codes = <INPUT_REL_X INPUT_REL_Y>; // X and Y axis events
     track-remainders;             // Accumulate fractional movements
     min-factor = <800>;          // 0.8x at very slow speeds
     max-factor = <3000>;         // 3.0x at fast speeds
@@ -106,6 +109,7 @@ The acceleration processor provides several settings to customize how your point
 ### Basic Settings
 
 - `min-factor`: (Default: 1000)
+
   - Controls how slow movements are handled
   - Values below 1000 will make slow movements even slower for precision
   - Values are in thousandths (e.g., 800 = 0.8x speed)
@@ -119,6 +123,7 @@ The acceleration processor provides several settings to customize how your point
 ### Speed Settings
 
 - `speed-threshold`: (Default: 1000)
+
   - Speed at which acceleration starts
   - Measured in counts per second
   - Below this speed, min-factor is applied
@@ -147,7 +152,6 @@ The acceleration processor provides several settings to customize how your point
   - Improves precision by accumulating small movements
   - Enable with `track-remainders;` in your config
 
-
 ### Visual Examples
 
 Here's how different configurations affect pointer movement:
@@ -161,30 +165,33 @@ Slow Speed │  Medium Speed  │  High Speed
 0.5x      →│      1.0x     →│     1.5x     (Precision)
 ```
 
-
-
 ## Share Your Settings
+
 ### App for easy configuration visualisation: https://pointing.streamlit.app/
+
 The configurations under are just starting points - every person's perfect pointer settings are as unique as they are) I'd love to see what works best for you.
 
 ### Why Share?
+
 - Help others find their ideal setup
 - Contribute to the community knowledge
 - Get feedback and suggestions
 - Inspire new configuration ideas
 
 ### How to Share
+
 - Drop your config in a GitHub issue
 - Share on Discord ZMK or my DM (with a quick note about your use case)
 - Comment on what worked/didn't work for you
 
->  **Remember**: These examples were primarily tested with Cirque trackpads. If you're using other pointing devices (like trackballs or trackpoints), your mileage may vary - and that's why sharing your experience is so valuable
- 
+> **Remember**: These examples were primarily tested with Cirque trackpads. If you're using other pointing devices (like trackballs or trackpoints), your mileage may vary - and that's why sharing your experience is so valuable
 
 ### General Use:
+
 ```devicetree
 &pointer_accel {
     input-type = <INPUT_EV_REL>;
+    codes = <INPUT_REL_X INPUT_REL_Y>; // X and Y axis events
     min-factor = <800>;        // Slight slowdown for precision
     max-factor = <3000>;       // Good acceleration for large movements
     speed-threshold = <1200>;  // Balanced acceleration point
@@ -193,10 +200,13 @@ The configurations under are just starting points - every person's perfect point
     track-remainders;         // Track fractional movements
 };
 ```
+
 ### Light Acceleration
+
 ```devicetree
 &pointer_accel {
     input-type = <INPUT_EV_REL>;
+    codes = <INPUT_REL_X INPUT_REL_Y>; // X and Y axis events
     min-factor = <900>;        // 0.9x minimum
     max-factor = <2000>;       // 2.0x maximum
     speed-threshold = <1500>;  // Start accelerating later
@@ -207,9 +217,11 @@ The configurations under are just starting points - every person's perfect point
 ```
 
 ### Heavy Acceleration
+
 ```devicetree
 &pointer_accel {
     input-type = <INPUT_EV_REL>;
+    codes = <INPUT_REL_X INPUT_REL_Y>; // X and Y axis events
     min-factor = <700>;        // 0.7x minimum
     max-factor = <4000>;       // 4.0x maximum
     speed-threshold = <1000>;  // Start accelerating earlier
@@ -220,9 +232,11 @@ The configurations under are just starting points - every person's perfect point
 ```
 
 ### Precision Mode
+
 ```devicetree
 &pointer_accel {
     input-type = <INPUT_EV_REL>;
+    codes = <INPUT_REL_X INPUT_REL_Y>; // X and Y axis events
     min-factor = <500>;        // 0.5x for fine control
     max-factor = <1500>;       // 1.5x maximum
     speed-threshold = <2000>;  // High threshold for stability
