@@ -13,3 +13,62 @@ config INPUT_PROCESSOR_ACCELERATION_INIT_PRIORITY
     int "Input processor acceleration initialization priority"
     default 90
     depends on ZMK_INPUT_PROCESSOR_ACCELERATION
+
+config INPUT_PROCESSOR_ACCEL_PAIR_WINDOW_MS
+    int "Input processor acceleration pair window (ms)"
+    default 10
+    depends on ZMK_INPUT_PROCESSOR_ACCELERATION
+    help
+      Time window in milliseconds to pair X/Y events for acceleration.
+
+config INPUT_PROCESSOR_ACCEL_Y_ASPECT_SCALE
+    int "Y axis aspect ratio scale (scaled by 1000, e.g. 1200 = 1.2x)"
+    default 1500
+    depends on ZMK_INPUT_PROCESSOR_ACCELERATION
+    help
+      Scale factor for Y axis movement to adjust for screen aspect ratio.
+      1000 = 1.0x, 1200 = 1.2x, etc.
+
+config INPUT_PROCESSOR_ACCEL_MIN_FACTOR
+    int "Minimum acceleration factor (scaled by 1000)"
+    default 1000
+    depends on ZMK_INPUT_PROCESSOR_ACCELERATION
+    help
+      Minimum acceleration factor. 1000 = 1.0x (no acceleration).
+
+config INPUT_PROCESSOR_ACCEL_MAX_FACTOR
+    int "Maximum acceleration factor (scaled by 1000)"
+    default 2500
+    depends on ZMK_INPUT_PROCESSOR_ACCELERATION
+    help
+      Maximum acceleration factor. 2500 = 2.5x acceleration.
+
+config INPUT_PROCESSOR_ACCEL_SPEED_THRESHOLD
+    int "Speed threshold for acceleration start"
+    default 500
+    depends on ZMK_INPUT_PROCESSOR_ACCELERATION
+    help
+      Speed threshold below which no acceleration is applied.
+
+config INPUT_PROCESSOR_ACCEL_SPEED_MAX
+    int "Maximum speed for acceleration calculation"
+    default 4000
+    depends on ZMK_INPUT_PROCESSOR_ACCELERATION
+    help
+      Speed at which maximum acceleration factor is reached.
+
+config INPUT_PROCESSOR_ACCEL_EXPONENT
+    int "Acceleration curve exponent"
+    default 2
+    range 1 3
+    depends on ZMK_INPUT_PROCESSOR_ACCELERATION
+    help
+      Exponent for acceleration curve. 1=linear, 2=quadratic, 3=cubic.
+
+config INPUT_PROCESSOR_ACCEL_SENSOR_DPI
+    int "Mouse sensor DPI/CPI setting"
+    default 1600
+    depends on ZMK_INPUT_PROCESSOR_ACCELERATION
+    help
+      DPI/CPI setting of the mouse sensor. Used for automatic scaling adjustment.
+      Higher DPI sensors will have reduced acceleration to prevent oversensitivity.
