@@ -264,17 +264,48 @@ static int accel_handle_event(const struct device *dev, struct input_event *even
             if (speed >= cfg->speed_max) {
                 factor = cfg->max_factor;
             } else {
-                float t = (float)(speed - cfg->speed_threshold) / (cfg->speed_max - cfg->speed_threshold);
-                if (cfg->acceleration_exponent == 1) {
-                    // Linear
-                    factor = cfg->min_factor + (uint16_t)((cfg->max_factor - cfg->min_factor) * t);
-                } else {
-                    // Polynomial (exponential-like)
-                    factor = cfg->min_factor + (uint16_t)((cfg->max_factor - cfg->min_factor) * powf(t, cfg->acceleration_exponent));
+                // t = (speed - threshold) / (speed_max - threshold) を1000倍整数で
+                uint32_t speed_range = cfg->speed_max - cfg->speed_threshold;
+                uint32_t speed_offset = speed - cfg->speed_threshold;
+                uint32_t t_int = (speed_offset * 1000) / speed_range; // 0～1000
+
+                uint32_t curve = t_int; // 1乗
+                switch (cfg->acceleration_exponent) {
+                    case 1:
+                        // curve = t_int;
+                        break;
+                    case 2:
+                        curve = (curve * t_int) / 1000; // 2乗
+                        break;
+                    case 3:
+                        curve = (curve * t_int) / 1000; // 3乗
+                        curve = (curve * t_int) / 1000;
+                        break;
+                    case 4:
+                        curve = (curve * t_int) / 1000; // 4乗
+                        curve = (curve * t_int) / 1000;
+                        curve = (curve * t_int) / 1000;
+                        break;
+                    case 5:
+                        curve = (curve * t_int) / 1000; // 5乗
+                        curve = (curve * t_int) / 1000;
+                        curve = (curve * t_int) / 1000;
+                        curve = (curve * t_int) / 1000;
+                        break;
+                    default:
+                        // 6以上は5乗と同じ
+                        curve = (curve * t_int) / 1000;
+                        curve = (curve * t_int) / 1000;
+                        curve = (curve * t_int) / 1000;
+                        curve = (curve * t_int) / 1000;
+                        break;
                 }
+                // factor = min + (max - min) * curve / 1000
+                factor = cfg->min_factor + (uint16_t)(((cfg->max_factor - cfg->min_factor) * curve) / 1000);
                 if (factor > cfg->max_factor) factor = cfg->max_factor;
             }
         }
+
 
         
         // Calculate DPI adjustment
