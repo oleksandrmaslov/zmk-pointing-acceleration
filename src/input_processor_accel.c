@@ -264,24 +264,18 @@ static int accel_handle_event(const struct device *dev, struct input_event *even
             if (speed >= cfg->speed_max) {
                 factor = cfg->max_factor;
             } else {
-                uint32_t speed_range = cfg->speed_max - cfg->speed_threshold;
-                float t = (float)(speed - cfg->speed_threshold) / (float)speed_range;
-
-                switch (cfg->curve_type) {
-                    case ACCEL_CURVE_LINEAR:
-                        factor = cfg->min_factor + (uint16_t)((cfg->max_factor - cfg->min_factor) * t);
-                        break;
-                    case ACCEL_CURVE_EXPONENTIAL:
-                        factor = (uint16_t)(cfg->min_factor * powf((float)cfg->max_factor / cfg->min_factor, t));
-                        break;
-                    default:
-                        factor = cfg->min_factor;
-                        break;
+                float t = (float)(speed - cfg->speed_threshold) / (cfg->speed_max - cfg->speed_threshold);
+                if (cfg->acceleration_exponent == 1) {
+                    // Linear
+                    factor = cfg->min_factor + (uint16_t)((cfg->max_factor - cfg->min_factor) * t);
+                } else {
+                    // Polynomial (exponential-like)
+                    factor = cfg->min_factor + (uint16_t)((cfg->max_factor - cfg->min_factor) * powf(t, cfg->acceleration_exponent));
                 }
-
                 if (factor > cfg->max_factor) factor = cfg->max_factor;
             }
         }
+
         
         // Calculate DPI adjustment
         // DPI adjustment factor = (target_dpi / sensor_dpi) * dpi_multiplier
