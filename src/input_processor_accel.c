@@ -60,11 +60,17 @@ LOG_MODULE_REGISTER(input_processor_accel, CONFIG_ZMK_LOG_LEVEL);
 #define CONFIG_INPUT_PROCESSOR_ACCEL_TARGET_DPI 800  // Target DPI (reference for sensitivity adjustment)
 #endif
 
+typedef enum {
+    ACCEL_CURVE_LINEAR = 0,
+    ACCEL_CURVE_EXPONENTIAL = 1,
+} accel_curve_t;
+
 struct accel_config {
     uint8_t input_type;
     const uint16_t *codes;
     uint32_t codes_count;
     bool track_remainders;
+    accel_curve_t curve_type;   // 0: linear, 1: exponential
     uint16_t min_factor;
     uint16_t max_factor;
     uint32_t speed_threshold;
@@ -258,12 +264,21 @@ static int accel_handle_event(const struct device *dev, struct input_event *even
             if (speed >= cfg->speed_max) {
                 factor = cfg->max_factor;
             } else {
-                // Calculate acceleration by linear interpolation
                 uint32_t speed_range = cfg->speed_max - cfg->speed_threshold;
-                uint32_t factor_range = cfg->max_factor - cfg->min_factor;
-                uint32_t speed_offset = speed - cfg->speed_threshold;
-                factor = cfg->min_factor + ((factor_range * speed_offset) / speed_range);
-                
+                float t = (float)(speed - cfg->speed_threshold) / (float)speed_range;
+
+                switch (cfg->curve_type) {
+                    case ACCEL_CURVE_LINEAR:
+                        factor = cfg->min_factor + (uint16_t)((cfg->max_factor - cfg->min_factor) * t);
+                        break;
+                    case ACCEL_CURVE_EXPONENTIAL:
+                        factor = (uint16_t)(cfg->min_factor * powf((float)cfg->max_factor / cfg->min_factor, t));
+                        break;
+                    default:
+                        factor = cfg->min_factor;
+                        break;
+                }
+
                 if (factor > cfg->max_factor) factor = cfg->max_factor;
             }
         }
