@@ -1,9 +1,6 @@
 # ZMK POINTING ACCELERATION
 
 This repository contains a pointer acceleration implementation for pointing devices in ZMK.
-> [!WARNING]  
-> Known issue: The `&settings_reset` shield currently does not compile. This does not affect normal board builds or functionality.
-> The fix is in progress. Please DM @heisenberg_ukr on Discord if you encounter any other bugs.
 
 The acceleration makes fine cursor control more precise at slow speeds while allowing faster cursor movement when moving quickly. It supports customizable acceleration curves and can be configured for different input devices.
 
