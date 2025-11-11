@@ -17,6 +17,10 @@ static int accel_handle_event(const struct device *dev, struct input_event *even
                               uint32_t param1, uint32_t param2,
                               struct zmk_input_processor_state *state);
 
+static const struct zmk_input_processor_driver_api accel_api = {
+    .handle_event = accel_handle_event,
+};
+
 struct accel_config {
     uint8_t  input_type;
     const uint16_t *codes;          /* e.g. REL_X, REL_Y */
@@ -168,8 +172,6 @@ static int accel_handle_event(const struct device *dev, struct input_event *even
                           &accel_config_##inst,                                   \
                           POST_KERNEL,                                            \
                           CONFIG_ZMK_INPUT_PROCESSOR_INIT_PRIORITY,               \
-                          &(const struct zmk_input_processor_driver_api){         \
-                              .handle_event = accel_handle_event,                 \
-                          });
+                          &accel_api);
 
 DT_INST_FOREACH_STATUS_OKAY(ACCEL_INST_INIT)
